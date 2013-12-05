@@ -8,12 +8,20 @@
  * You can enable/disable this feature in config.php:
  * current_theme_supports('root-relative-urls');
  *
+ * To honor server port when matching takes place, define a constant in your config.php:
+ * define('ROOT_RELATIVE_URLS_HONOR_SERVER_PORT', true);
+ *
  * @author Scott Walkinshaw <scott.walkinshaw@gmail.com>
  */
 function roots_root_relative_url($input) {
   preg_match('|https?://([^/]+)(/.*)|i', $input, $matches);
 
-  if (isset($matches[1]) && isset($matches[2]) && $matches[1] === $_SERVER['SERVER_NAME']) {
+  $server_domain = $_SERVER['SERVER_NAME'];
+  if (defined('ROOT_RELATIVE_URLS_HONOR_SERVER_PORT') && ROOT_RELATIVE_URLS_HONOR_SERVER_PORT &&
+    isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] !== '80')
+    $server_domain .= ':' . $_SERVER['SERVER_PORT'];
+
+  if (isset($matches[1]) && isset($matches[2]) && $matches[1] === $server_domain) {
     return wp_make_link_relative($input);
   } else {
     return $input;
